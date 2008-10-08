@@ -1,0 +1,131 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
+<?xml-stylesheet href="css/mozmill.css" type="text/css"?>
+
+<!DOCTYPE window SYSTEM "chrome://mozmill/locale/mozmill.dtd">
+
+<window id="main" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" 
+title="&title.label;">
+
+<script src="mozmill.js"/>
+<script src="js/lib/getXPath.js"/>
+<script src="js/dx.js"/>
+<script src="js/recorder.js"/>
+<script src="js/glue.js"/>
+
+<keyset>
+  <key id="open-key" modifiers="accel" key="o" oncommand="openFile();"/>
+  <key id="run-editor" modifiers="accel" key="r" oncommand="runEditor();"/>
+  <key id="save-as" modifiers="accel" key="a" oncommand="saveAsFile();"/>
+</keyset>
+ <menubar id="windowlist-menubar">
+  <menu label="Window" oncommand="switchFocus(event.target);">
+   <menupopup id="window-menu" datasources="rdf:window-mediator" ref="NC:WindowMediatorRoot">
+    <template>
+     <rule>
+      <menuitem uri="rdf:*" label="rdf:http://home.netscape.com/NC-rdf#Name"/>
+     </rule>
+    </template>
+   </menupopup>
+  </menu>    
+  <menu id="help-menu" label="Help">
+     <menupopup id="help-popup">
+       <menuitem label="About MozMill"/>
+     </menupopup>
+   </menu>      
+ </menubar>
+ 
+<script>
+function switchFocus(elem)
+{
+  var mediator = Components.classes["@mozilla.org/rdf/datasource;1?name=window-mediator"].getService();
+  mediator.QueryInterface(Components.interfaces.nsIWindowDataSource);
+
+  var resource = elem.getAttribute('id');
+  switchwindow = mediator.getWindowForResource(resource);
+
+  if (switchwindow){
+    switchwindow.focus();
+  }
+}
+</script>
+
+<toolbox>
+  <toolbar id="nav-toolbar">
+    <button type="menu" id="fileMenu" label="File">
+      <menupopup id="action-popup">
+        <menuitem id="open-key" key="open-key" label="Open" oncommand="openFile();"/>
+        <menuseparator/>
+        <menuitem id="saveMenu"  label="Save" disabled="true" oncommand="saveFile();"/>
+        <menuitem label="Save As" key="save-as" oncommand="saveAsFile();"/>
+        <menuseparator/>
+        <menuitem id="closeMenu"  label="Close" disabled="true" oncommand="closeFile();"/>
+        <menuseparator/>
+      	<menuitem id="exitMenu" label="Exit Mozmill" oncommand="close();"/>
+
+      </menupopup>
+    </button>
+    <button type="menu" id="testMenu" label="Tests">
+      <menupopup id="action-popup">
+        <menuitem label="Run Test File" oncommand="runFile();"/>
+        <menuseparator/>
+        <menuitem key="run-editor" label="Run Editor" oncommand="runEditor();"/>
+        <menuitem label="Clear Editor" oncommand="$('editorInput').value = '';"/>
+        <menuseparator/>
+        <menuitem label="New Boilerplate" oncommand="genBoiler();"/>
+        <menuitem id="copyout" label="Show Copyable Output" 
+          oncommand="accessOutput();" type="checkbox" checked="false"/>
+      </menupopup>
+    </button>
+	<toolbarseparator/>
+	<button id="domExplorer" label="Enable Inspector" oncommand="MozMilldx.dxToggle();"/>
+	<radiogroup id="inspectClickSelection">
+	  <radio id="inspectDouble" label="Double Click" value="double"/>
+	  <radio id="inspectSingle" label="Single Click" value="single"/>
+	</radiogroup>
+  </toolbar>
+</toolbox>
+
+<hbox class="h">
+  <image src="img/wmIcon.png"/>
+  <hbox id="runningStatus">
+    Status: Ready...
+  </hbox>
+</hbox>
+<hbox id="dxContainer" class="dx" flex="1">
+  <textbox id="dxDisplay" value="" multiline="true" flex="1" style="width:95%;height:90%"/>
+</hbox>
+<hbox class="m" flex="1">
+  <tabbox flex="1">
+    <tabs>
+      <tab label="Editor"/>
+      <tab label="Output"/>
+      <tab label="Performance"/>
+    </tabs>
+    
+    <tabpanels flex="1" id="mmtabs">
+      <tabpanel flex="1">
+        <hbox flex="1">
+          <textbox id="editorInput" value="" multiline="true" style="width:98%;height:100%" flex="1"/>
+        </hbox>
+      </tabpanel>
+      <tabpanel id="outputtab" flex="1">
+        <hbox flex="1" id="resOut" orient="vertical" style="overflow:auto">Waiting...</hbox>
+      </tabpanel>
+      <tabpanel id="performancetab">
+  		  <hbox flex="1" id="perfOut" class="a" style="overflow:auto">Waiting...</hbox>
+      </tabpanel>
+    </tabpanels>
+  </tabbox>
+</hbox>
+
+<hbox>
+  <toolbox>
+    <toolbars>
+      <!-- <toolbarbutton id="nav-users"  accesskey="U" label="Preferences" onclick="showPrefs();"/> -->
+      <toolbarbutton id="nav-groups" accesskey="p" label="Clear Tab" onclick="logicalClear();"/>
+    </toolbars>
+  </toolbox>
+</hbox>
+   
+</window>
