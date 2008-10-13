@@ -23,6 +23,7 @@ var dom = {}; Components.utils.import('resource://mozmill/stdlib/dom.js', dom);
 var objects = {}; Components.utils.import('resource://mozmill/stdlib/objects.js', objects);
 var json2 = {}; Components.utils.import('resource://mozmill/stdlib/json2.js', json2);
 var r = {}; Components.utils.import('resource://mozmill/modules/results.js', r);
+var utils = {}; Components.utils.import('resource://mozmill/modules/utils.js', utils);
 
 var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
            .getService(Components.interfaces.nsIWindowMediator);
@@ -314,6 +315,7 @@ var MozMilldx = new function() {
       throw err;
     }
     
+    return elemText;
   }
   
     this.dxToggle = function(){
@@ -329,6 +331,7 @@ var MozMilldx = new function() {
     //Since the click event does things like firing twice when a double click goes also
     //and can be obnoxious im enabling it to be turned off and on with a toggle check box
     this.dxOn = function() {
+      $('eventsOut').value = "";
       $('inspectClickSelection').disabled = true;
       $('domExplorer').setAttribute('label', 'Disable Inspector');
       //defined the click method, default to dblclick
@@ -370,16 +373,10 @@ var MozMilldx = new function() {
         $('domExplorer').setAttribute('label', 'Enable Inspector');
         //$('dxContainer').style.display = "none";
         //var w = Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('');
-         var enumerator = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-                             .getService(Components.interfaces.nsIWindowMediator)
-                             .getEnumerator("");
-          while(enumerator.hasMoreElements()) {
-            var win = enumerator.getNext();
-            //if (win.title != 'Error Console' && win.title != 'MozMill IDE'){
-            if (win.title != 'MozMill IDE'){
-              this.dxRecursiveUnBind(win, clickMethod);
-            }
-          }
+        for each(win in utils.getWindows()) {
+          this.dxRecursiveUnBind(win, clickMethod);
+        }
+        
     }
     
     this.getFoc = function(e){
@@ -392,10 +389,26 @@ var MozMilldx = new function() {
     
     //Copy inspector output to clipboard if alt,shift,c is pressed
     this.clipCopy = function(e){
-       if (e.altKey && e.shiftKey){
-         if (e.charCode == 199){
+       if (e.altKey && e.shiftKey && (e.charCode == 199)){
            copyToClipboard($('dxDisplay').value);
-         }
+       }
+       else {
+         $('eventsOut').value += "-----\n";
+         $('eventsOut').value += "Shift Key: "+ e.shiftKey + "\n";
+         $('eventsOut').value += "Control Key: "+ e.ctrlKey + "\n";
+         $('eventsOut').value += "Alt Key: "+ e.altKey + "\n";
+         $('eventsOut').value += "Meta Key: "+ e.metaKey + "\n\n";
+         
+         var ctrlString = "";
+         ctrlString += MozMilldx.evtDispatch(e);
+         ctrlString += "Controller: controller.keypress(element,"+e.charCode+",";
+         ctrlString += e.ctrlKey.toString()+",";
+         ctrlString += e.altKey.toString()+",";
+         ctrlString += e.shiftKey.toString()+",";
+         ctrlString += e.metaKey.toString()+");\n";
+         
+         ctrlString = ctrlString.replace(/undefined/g, "false");         
+         $('eventsOut').value += ctrlString;
        }
     }
     
